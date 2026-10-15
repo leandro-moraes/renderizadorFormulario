@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { RespostasSerializadas } from "@/features/respostas/types/envio.types";
+import type { RespostasComEnunciados } from "@/features/respostas/types/envio.types";
 import { useSalvarEnvio } from "@/features/respostas/hooks/useSalvarEnvio";
 
 type Props = {
   questionarioId: number;
-  respostas: RespostasSerializadas;
+  respostas: RespostasComEnunciados;
 };
 
 export function BotaoSalvarEnvio({
@@ -20,6 +20,7 @@ export function BotaoSalvarEnvio({
   async function lidarComClique() {
     setSalvouAgora(false);
     const id = await salvar({ questionarioId, respostas });
+
     if (id !== null) {
       setSalvouAgora(true);
     }
@@ -29,9 +30,7 @@ export function BotaoSalvarEnvio({
     return (
       <div className="rounded-md border border-green-300 bg-green-50 p-4 text-sm text-green-900">
         <p className="font-medium">Respostas salvas com sucesso.</p>
-        <p className="mt-1">
-          Envio #{idSalvo} registrado.
-        </p>
+        <p className="mt-1">Envio #{idSalvo} registrado.</p>
         <Link
           href="/respostas"
           className="mt-3 inline-block rounded-md bg-green-700 px-4 py-2 font-medium text-white hover:bg-green-800"

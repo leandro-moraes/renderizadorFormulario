@@ -11,13 +11,6 @@ import { TelaConclusao } from "@/features/formularios/components/TelaConclusao";
 import { RenderizarPergunta } from "@/features/formularios/components/perguntas/RenderizarPergunta";
 import { obterId } from "@/features/formularios/services/construirSecoes";
 
-const idQuestionario = Number(id);
-
-const { estado } = useQuestionario(
-  Number.isFinite(idQuestionario) && idQuestionario > 0
-    ? idQuestionario
-    : null
-);
 
 type Props = {
   id: string;
@@ -27,7 +20,9 @@ export function ResponderCliente({ id }: Props) {
   const idQuestionario = Number(id);
 
   const { estado } = useQuestionario(
-    Number.isFinite(idQuestionario) ? idQuestionario : null
+    Number.isInteger(idQuestionario) && idQuestionario > 0
+      ? idQuestionario
+      : null
   );
 
   const f = useRenderizadorFormulario();
@@ -158,7 +153,7 @@ export function ResponderCliente({ id }: Props) {
         {f.concluido && f.questionarioId !== null && (
           <TelaConclusao
             questionarioId={f.questionarioId}
-            respostas={f.respostasSerializadas}
+            respostas={f.respostasComEnunciados}
             onReiniciar={f.reiniciar}
           />
         )}

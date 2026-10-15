@@ -7,25 +7,55 @@ type Props = {
   envio: EnvioSalvo;
 };
 
+type RespostaComEnunciado = {
+  enunciado: string;
+  valor: unknown;
+};
+
+function possuiEnunciado(valor: unknown): valor is RespostaComEnunciado {
+  return (
+    valor !== null &&
+    typeof valor === "object" &&
+    !Array.isArray(valor) &&
+    "enunciado" in valor &&
+    "valor" in valor &&
+    typeof valor.enunciado === "string"
+  );
+}
+
 function formatarValor(valor: unknown): string {
-  if (typeof valor === "string") return valor || "(vazio)";
+  if (typeof valor === "string") {
+    return valor || "(vazio)";
+  }
 
   if (Array.isArray(valor)) {
-    if (valor.length === 0) return "(vazio)";
+    if (valor.length === 0) {
+      return "(vazio)";
+    }
 
-    // Arquivos: [{ nome: "x.pdf" }, ...]
+    // Arquivos: [{ nome: "arquivo.pdf" }, ...]
     if (
-      valor[0] &&
-      typeof valor[0] === "object" &&
-      "nome" in valor[0]
+      valor.every(
+        (item) =>
+          item !== null &&
+          typeof item === "object" &&
+          "nome" in item &&
+          typeof item.nome === "string"
+      )
     ) {
       return valor
-        .map((a) => `📎 ${(a as { nome: string }).nome}`)
+        .map((arquivo) => `📎 ${arquivo.nome}`)
         .join(", ");
     }
 
-    // string[]
-    return valor.join(", ");
+    // Respostas de múltipla escolha.
+    return valor
+      .map((item) => String(item))
+      .join(", ");
+  }
+
+  if (valor === null || valor === undefined) {
+    return "(vazio)";
   }
 
   return String(valor);
@@ -40,9 +70,11 @@ export function DetalheEnvio({ envio }: Props) {
         <p className="text-sm text-gray-500">
           Envio #{envio.idResposta}
         </p>
+
         <h2 className="mt-1 text-xl font-semibold text-gray-900">
           {envio.questionarioTitulo ?? "Formulário sem título"}
         </h2>
+
         <p className="mt-2 text-sm text-gray-600">
           {new Date(envio.criadoEm).toLocaleString("pt-BR")}
         </p>
@@ -55,16 +87,29 @@ export function DetalheEnvio({ envio }: Props) {
           </p>
         ) : (
           <dl className="divide-y divide-gray-100">
-            {entradas.map(([id, valor]) => (
-              <div key={id} className="py-3">
-                <dt className="text-sm font-medium text-gray-500 font-mono">
-                  {id}
-                </dt>
-                <dd className="mt-1 whitespace-pre-wrap text-gray-900">
-                  {formatarValor(valor)}
-                </dd>
-              </div>
-            ))}
+            {entradas.map(([id, registro]) => {
+              const respostaNova = possuiEnunciado(registro);
+
+              const enunciado = respostaNova
+                ? registro.enunciado
+                : "Enunciado não disponível para este envio antigo.";
+
+              const valor = respostaNova
+                ? registro.valor
+                : registro;
+
+              return (
+                <div key={id} className="py-4">
+                  <dt className="whitespace-pre-wrap font-semibold text-gray-900">
+                    {enunciado}
+                  </dt>
+
+                  <dd className="mt-2 whitespace-pre-wrap text-gray-700">
+                    {formatarValor(valor)}
+                  </dd>
+                </div>
+              );
+            })}
           </dl>
         )}
       </section>

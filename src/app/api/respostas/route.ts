@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import { pool } from "@/lib/db";
 import type { RespostasSerializadas } from "@/features/respostas/types/envio.types";
+import type { RespostasComEnunciados } from "@/features/respostas/types/envio.types";
 
 type RespostaRow = RowDataPacket & {
   id_resposta: number;
@@ -13,7 +14,7 @@ type RespostaRow = RowDataPacket & {
 
 type PostBody = {
   questionarioId: number;
-  respostas: RespostasSerializadas;
+ respostas: RespostasComEnunciados;
 };
 
 export async function GET(request: Request) {

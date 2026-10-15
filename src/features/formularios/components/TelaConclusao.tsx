@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import type { RespostasSerializadas } from "@/features/respostas/types/envio.types";
+import type { RespostasComEnunciados } from "@/features/respostas/types/envio.types";
 import { BotaoSalvarEnvio } from "@/features/respostas/components/BotaoSalvarEnvio";
 
 type Props = {
   questionarioId: number;
-  respostas: RespostasSerializadas;
+  respostas: RespostasComEnunciados;
   onReiniciar: () => void;
 };
 

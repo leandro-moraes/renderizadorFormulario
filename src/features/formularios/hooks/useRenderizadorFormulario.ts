@@ -5,7 +5,10 @@ import { useCallback, useMemo, useState, type FormEvent } from "react";
 import { construirSecoes } from "@/features/formularios/services/construirSecoes";
 import { validarSecao } from "@/features/formularios/services/validarSecao";
 import { calcularProximoDestino } from "@/features/formularios/services/desvioFluxo";
-import { serializarRespostas } from "@/features/respostas/services/serializarRespostas";
+import {
+  serializarRespostas,
+  serializarRespostasComEnunciados,
+} from "@/features/respostas/services/serializarRespostas";
 import type {
   FormularioGoogle,
   Secao,
@@ -15,7 +18,10 @@ import type {
   Resposta,
   Respostas,
 } from "@/features/formularios/types/resposta.types";
-import type { RespostasSerializadas } from "@/features/respostas/types/envio.types";
+import type {
+  RespostasComEnunciados,
+  RespostasSerializadas,
+} from "@/features/respostas/types/envio.types";
 
 export type RenderizadorFormulario = {
   formulario: FormularioGoogle | null;
@@ -25,6 +31,7 @@ export type RenderizadorFormulario = {
   indiceSecao: number;
   respostas: Respostas;
   respostasSerializadas: RespostasSerializadas;
+  respostasComEnunciados: RespostasComEnunciados;
   erros: ErrosValidacao;
   listaErros: string[];
   mensagem: string;
@@ -65,9 +72,17 @@ export function useRenderizadorFormulario(): RenderizadorFormulario {
   );
 
   const respostasSerializadas = useMemo(
-    () => serializarRespostas(respostas),
-    [respostas]
-  );
+  () => serializarRespostas(respostas),
+  [respostas]
+);
+
+const respostasComEnunciados = useMemo(
+  () =>
+    formulario
+      ? serializarRespostasComEnunciados(respostas, formulario)
+      : {},
+  [respostas, formulario]
+);
 
   const podeVoltar = historico.length > 0;
   const ehUltimaSecao = indiceSecao === secoes.length - 1;
@@ -200,6 +215,7 @@ export function useRenderizadorFormulario(): RenderizadorFormulario {
     indiceSecao,
     respostas,
     respostasSerializadas,
+    respostasComEnunciados,
     erros,
     listaErros,
     mensagem,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { pool } from "@/lib/db";
+import type { RespostasComEnunciados } from "@/features/respostas/types/envio.types";
 
 type RespostaRow = RowDataPacket & {
   id_resposta: number;

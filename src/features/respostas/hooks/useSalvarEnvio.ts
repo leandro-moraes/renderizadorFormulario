@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { RespostasSerializadas } from "@/features/respostas/types/envio.types";
+import type { RespostasComEnunciados } from "@/features/respostas/types/envio.types";
 
 export type UseSalvarEnvioRetorno = {
   salvar: (payload: {
     questionarioId: number;
-    respostas: RespostasSerializadas;
+    respostas: RespostasComEnunciados;
   }) => Promise<number | null>;
   salvando: boolean;
   idSalvo: number | null;
@@ -21,7 +21,7 @@ export function useSalvarEnvio(): UseSalvarEnvioRetorno {
   const salvar = useCallback(
     async (payload: {
       questionarioId: number;
-      respostas: RespostasSerializadas;
+      respostas: RespostasComEnunciados;
     }): Promise<number | null> => {
       setSalvando(true);
       setErro("");
@@ -36,9 +36,7 @@ export function useSalvarEnvio(): UseSalvarEnvioRetorno {
 
         if (!resposta.ok) {
           const corpo = await resposta.json().catch(() => null);
-          throw new Error(
-            corpo?.erro ?? `HTTP ${resposta.status}`
-          );
+          throw new Error(corpo?.erro ?? `HTTP ${resposta.status}`);
         }
 
         const dados = (await resposta.json()) as {
@@ -49,9 +47,7 @@ export function useSalvarEnvio(): UseSalvarEnvioRetorno {
         return dados.idResposta;
       } catch (e) {
         setErro(
-          e instanceof Error
-            ? e.message
-            : "Erro ao salvar respostas."
+          e instanceof Error ? e.message : "Erro ao salvar respostas."
         );
         return null;
       } finally {
