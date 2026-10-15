@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { construirSecoes } from "@/features/formularios/services/construirSecoes";
-import { importarFormularioJSON } from "@/features/formularios/services/importacaoFormulario";
 import { validarSecao } from "@/features/formularios/services/validarSecao";
 import { calcularProximoDestino } from "@/features/formularios/services/desvioFluxo";
+import { serializarRespostas } from "@/features/respostas/services/serializarRespostas";
 import type {
   FormularioGoogle,
   Secao,
@@ -15,23 +15,27 @@ import type {
   Resposta,
   Respostas,
 } from "@/features/formularios/types/resposta.types";
+import type { RespostasSerializadas } from "@/features/respostas/types/envio.types";
 
 export type RenderizadorFormulario = {
   formulario: FormularioGoogle | null;
+  questionarioId: number | null;
   secoes: Secao[];
   secaoAtual: Secao | undefined;
   indiceSecao: number;
   respostas: Respostas;
+  respostasSerializadas: RespostasSerializadas;
   erros: ErrosValidacao;
   listaErros: string[];
-  nomeArquivo: string;
-  erroImportacao: string;
   mensagem: string;
   concluido: boolean;
   podeVoltar: boolean;
   ehUltimaSecao: boolean;
 
-  importarArquivo: (arquivo: File) => Promise<void>;
+  carregarFormulario: (
+    formulario: FormularioGoogle,
+    questionarioId: number
+  ) => void;
   atualizarResposta: (id: string, resposta: Resposta) => void;
   continuar: (event: FormEvent<HTMLFormElement>) => void;
   voltar: () => void;
@@ -40,12 +44,11 @@ export type RenderizadorFormulario = {
 
 export function useRenderizadorFormulario(): RenderizadorFormulario {
   const [formulario, setFormulario] = useState<FormularioGoogle | null>(null);
+  const [questionarioId, setQuestionarioId] = useState<number | null>(null);
   const [respostas, setRespostas] = useState<Respostas>({});
   const [erros, setErros] = useState<ErrosValidacao>({});
   const [indiceSecao, setIndiceSecao] = useState(0);
   const [historico, setHistorico] = useState<number[]>([]);
-  const [nomeArquivo, setNomeArquivo] = useState("");
-  const [erroImportacao, setErroImportacao] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [concluido, setConcluido] = useState(false);
 
@@ -61,33 +64,27 @@ export function useRenderizadorFormulario(): RenderizadorFormulario {
     [erros]
   );
 
+  const respostasSerializadas = useMemo(
+    () => serializarRespostas(respostas),
+    [respostas]
+  );
+
   const podeVoltar = historico.length > 0;
   const ehUltimaSecao = indiceSecao === secoes.length - 1;
 
-  async function importarArquivo(arquivo: File) {
-    setErroImportacao("");
-    setMensagem("");
-    setErros({});
-    setFormulario(null);
-    setRespostas({});
-    setHistorico([]);
-    setIndiceSecao(0);
-    setConcluido(false);
-    setNomeArquivo("");
-
-    try {
-      const formularioImportado = importarFormularioJSON(
-        await arquivo.text()
-      );
-
-      setFormulario(formularioImportado);
-      setNomeArquivo(arquivo.name);
-    } catch (e) {
-      setErroImportacao(
-        e instanceof Error ? e.message : "Erro ao ler o arquivo JSON."
-      );
-    }
-  }
+  const carregarFormulario = useCallback(
+    (novoFormulario: FormularioGoogle, novoQuestionarioId: number) => {
+      setFormulario(novoFormulario);
+      setQuestionarioId(novoQuestionarioId);
+      setRespostas({});
+      setErros({});
+      setHistorico([]);
+      setIndiceSecao(0);
+      setMensagem("");
+      setConcluido(false);
+    },
+    []
+  );
 
   function atualizarResposta(id: string, resposta: Resposta) {
     setRespostas((anterior) => ({
@@ -139,7 +136,6 @@ export function useRenderizadorFormulario(): RenderizadorFormulario {
     const resultado = calcularProximoDestino({
       secaoAtual,
       secoes,
-      indiceSecao,
       respostas,
     });
 
@@ -162,7 +158,6 @@ export function useRenderizadorFormulario(): RenderizadorFormulario {
 
       case "DESTINO_INVALIDO":
         setMensagem(resultado.mensagem);
-        // cai no fluxo padrão abaixo (mesmo comportamento do original)
         break;
 
       case "PROXIMA":
@@ -194,24 +189,25 @@ export function useRenderizadorFormulario(): RenderizadorFormulario {
     setHistorico([]);
     setErros({});
     setMensagem("");
+    setRespostas({});
   }
 
   return {
     formulario,
+    questionarioId,
     secoes,
     secaoAtual,
     indiceSecao,
     respostas,
+    respostasSerializadas,
     erros,
     listaErros,
-    nomeArquivo,
-    erroImportacao,
     mensagem,
     concluido,
     podeVoltar,
     ehUltimaSecao,
 
-    importarArquivo,
+    carregarFormulario,
     atualizarResposta,
     continuar,
     voltar,

@@ -14,6 +14,8 @@ export type ResultadoDesvio =
 
 /**
  * Localiza a primeira opção de escolha (RADIO/DROP_DOWN) com desvio.
+ * Alinhado com o Google Forms, que só permite desvio
+ * nesses dois tipos de pergunta.
  */
 function obterDesvio(
   secao: Secao,
@@ -52,10 +54,9 @@ function obterDesvio(
 export function calcularProximoDestino(params: {
   secaoAtual: Secao;
   secoes: Secao[];
-  indiceSecao: number;
   respostas: Respostas;
 }): ResultadoDesvio {
-  const { secaoAtual, secoes, indiceSecao, respostas } = params;
+  const { secaoAtual, secoes, respostas } = params;
 
   const desvio = obterDesvio(secaoAtual, respostas);
 
